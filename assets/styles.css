@@ -1,5 +1,5 @@
 /* ============================================================
-   MONITOR DE JANELA DE CONTEXTO — Estilos
+   MONITOR DE JANELA DE CONTEXTO, Estilos
    Tema: instrumento técnico escuro, números em monospace,
          cores semânticas claras (verde = na janela, vermelho = fora).
    ============================================================ */
@@ -790,7 +790,7 @@ input[type="range"]::-moz-range-thumb {
   border: 1px solid rgba(255,82,82,0.3);
 }
 
-/* Window viz — THE STAR */
+/* Window viz, THE STAR */
 .window-viz {
   display: flex;
   flex-direction: column;

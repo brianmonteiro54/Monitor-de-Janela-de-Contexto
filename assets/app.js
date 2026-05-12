@@ -1,5 +1,5 @@
 /* ============================================================
-   APP — Estado global e lógica de UI
+   APP, Estado global e lógica de UI
    ============================================================ */
 
 (function () {
@@ -165,7 +165,7 @@
       el.apiKeyInput.value = '';
       el.apiKeyInput.placeholder = '••••••••••••••••••••';
     } else {
-      el.apiKeyStatus.textContent = 'Não configurada — modo API não funcionará';
+      el.apiKeyStatus.textContent = 'Não configurada, modo API não funcionará';
       el.apiKeyStatus.className = '';
       el.apiKeyInput.placeholder = 'AIza...';
     }
@@ -411,7 +411,7 @@
             <ol>
               <li>Defina a janela em <strong>150 tokens</strong></li>
               <li>Digite: <em>"Meu nome é Maria, tenho 30 anos e moro no Rio"</em></li>
-              <li>Faça outras 4–5 perguntas</li>
+              <li>Faça outras 4-5 perguntas</li>
               <li>Pergunte: <em>"Qual meu nome?"</em></li>
               <li>Veja a IA esquecer ao vivo 🎓</li>
             </ol>
@@ -601,22 +601,22 @@
       hallucinate: false,
       messages: [
         'Meu nome é Maria, tenho 30 anos e moro no Rio de Janeiro.',
-        'Você pode me explicar o que é machine learning de forma simples?',
-        'E qual a diferença entre IA, machine learning e deep learning?',
-        'Me dá um exemplo prático de cada um.',
+        'Você pode me explicar o que são embeddings?',
+        'E qual a diferença entre embedding multimodal e geração multimodal?',
+        'Me dá exemplos de aplicações práticas de embeddings.',
         'Qual meu nome?',
       ],
     },
     'growth': {
-      title: '📈 Demo: Crescimento exponencial',
+      title: '📈 Demo: Crescimento da janela',
       contextWindow: 800,
       hallucinate: false,
       messages: [
         'Oi',
-        'Conta uma coisa interessante sobre o universo',
-        'Agora me explica em detalhes como funciona o sistema solar',
-        'E a teoria do Big Bang? Me dá um resumo bem completo',
-        'Liste 5 curiosidades sobre buracos negros',
+        'O que é tokenização?',
+        'Explica como funciona a janela de contexto',
+        'O que é um intervalo (chunk) e quando usar?',
+        'Liste exemplos de bancos de vetores',
       ],
     },
     'hallucination': {
@@ -625,8 +625,8 @@
       hallucinate: true,
       messages: [
         'Meu nome é Ricardo e minha comida favorita é lasanha.',
-        'Explica em detalhes como funciona uma CPU moderna, com pipeline, cache e tudo mais.',
-        'E o que é arquitetura RISC vs CISC? Detalha bem.',
+        'Explica em detalhes os cinco tipos de aprendizado de máquina, com exemplos.',
+        'E qual a diferença entre aprendizado federado e por transferência? Detalha bem.',
         'Qual minha comida favorita?',
       ],
     },
@@ -657,7 +657,7 @@
     el.hallucinateToggle.checked = demo.hallucinate;
     updateAllVisualizations();
 
-    toast(demo.title + ' — rodando...', 'info', 2000);
+    toast(demo.title + ', rodando...', 'info', 2000);
     for (const msg of demo.messages) {
       try {
         await sendMessage(msg);
@@ -693,7 +693,7 @@
     // Render inicial
     updateAllVisualizations();
 
-    // Detectar se já tem chave salva — não trocar de modo, apenas avisar
+    // Detectar se já tem chave salva, não trocar de modo, apenas avisar
     if (GeminiClient.hasApiKey()) {
       console.log('[CWM] API key encontrada no localStorage. Modo API disponível.');
     }

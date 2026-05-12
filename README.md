@@ -1,6 +1,6 @@
 # Monitor de Janela de Contexto
 
-Aplicação didática para demonstrar **janela de contexto** em LLMs ,  pensada para a aula de **IA Practitioner**, slide "Janela de contexto" do Encontro 2.
+Aplicação didática para demonstrar **janela de contexto** em LLMs, pensada para a aula de **IA Practitioner**, slide "Janela de contexto" do Encontro 2.
 
 Roda 100% no navegador: sem Python, sem servidor, sem build. É só um `index.html` com JS estático. Funciona em **modo simulação** (sem API key) e em **modo real** (Google Gemini, com API key gratuita).
 
@@ -10,7 +10,7 @@ Roda 100% no navegador: sem Python, sem servidor, sem build. É só um `index.ht
 
 Os slides explicam janela de contexto na teoria. Mas o aluno só **sente** o conceito quando vê a IA "esquecer" o nome dele em tempo real, com o contador de tokens batendo no limite. Esse app faz exatamente isso.
 
-O modo simulação é o ponto crítico: muitos professores não querem ou não conseguem pagar uma API só pra dar uma aula. Sem o modo simulação, a ferramenta é inútil pra eles. Com ele, a aula acontece igual — a "IA" simulada de propósito esquece fatos quando a mensagem original sai da janela.
+O modo simulação é o ponto crítico: muitos professores não querem ou não conseguem pagar uma API só pra dar uma aula. Sem o modo simulação, a ferramenta é inútil pra eles. Com ele, a aula acontece igual, a "IA" simulada de propósito esquece fatos quando a mensagem original sai da janela.
 
 ---
 
@@ -20,9 +20,19 @@ O modo simulação é o ponto crítico: muitos professores não querem ou não c
 2. Em **Settings → Pages**, selecione branch `main` e pasta `/ (root)`. Salve.
 3. Aguarde ~1 min. O app fica disponível em `https://SEU-USUARIO.github.io/NOME-DO-REPO/`.
 
-Pronto. O professor abre o link na aula, escolhe modo simulação ou cola a API key dele — a chave fica só no `localStorage` do navegador dele, nunca sobe pra lugar nenhum.
+Pronto. O professor abre o link na aula, escolhe modo simulação ou cola a API key dele, a chave fica só no `localStorage` do navegador dele, nunca sobe pra lugar nenhum.
 
-Não precisa de servidor obrigatoriamente — abrir o `index.html` direto no navegador também funciona, só algumas funcionalidades de `localStorage` ficam mais restritas em `file://` em alguns navegadores.
+### Rodando local (opcional)
+
+Qualquer servidor estático serve. Por exemplo:
+
+```bash
+cd context-window-monitor
+python3 -m http.server 8000
+# abre http://localhost:8000
+```
+
+Não precisa de servidor obrigatoriamente, abrir o `index.html` direto no navegador também funciona, só algumas funcionalidades de `localStorage` ficam mais restritas em `file://` em alguns navegadores.
 
 ---
 
@@ -31,18 +41,18 @@ Não precisa de servidor obrigatoriamente — abrir o `index.html` direto no nav
 ### Modo Simulação (sem API key)
 
 1. No painel da esquerda, deixe em **Simulação**.
-2. Ajuste a **janela de contexto** pra `150` tokens (deliberadamente pequena — pra forçar overflow rápido).
+2. Ajuste a **janela de contexto** pra `150` tokens (deliberadamente pequena, pra forçar overflow rápido).
 3. Mande a primeira mensagem: `Meu nome é Maria, tenho 30 anos e moro no Rio.`
-4. Faça umas 4–5 perguntas longas sobre qualquer assunto (machine learning, história, o que for) — o objetivo é **empurrar a primeira mensagem pra fora da janela**.
+4. Faça umas 4-5 perguntas longas sobre qualquer assunto (machine learning, história, o que for), o objetivo é **empurrar a primeira mensagem pra fora da janela**.
 5. Pergunte: **`Qual meu nome?`**
 6. A IA simulada responde "_Desculpe, não tenho essa informação..._" e o aluno vê na tela a mensagem #1 marcada como **FORA DA JANELA**.
 
-Para um efeito ainda mais dramático, ative o toggle **"Modo alucinação"** antes do passo 5 — aí em vez de admitir, a IA **inventa** um nome errado, com aviso explicativo. Bom para mostrar o que acontece com modelos que não foram treinados pra dizer "não sei".
+Para um efeito ainda mais dramático, ative o toggle **"Modo alucinação"** antes do passo 5, aí em vez de admitir, a IA **inventa** um nome errado, com aviso explicativo. Bom para mostrar o que acontece com modelos que não foram treinados pra dizer "não sei".
 
 ### Modo Real (com API key Gemini)
 
 1. Pegue uma key em [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey) (gratuita).
-2. Cole no campo "API Key" do painel esquerdo. A chave fica em `localStorage` — não sai do navegador.
+2. Cole no campo "API Key" do painel esquerdo. A chave fica em `localStorage`, não sai do navegador.
 3. Escolha modelo (`gemini-2.5-flash` é o mais barato e suficiente pra demo).
 4. Use normalmente. O contador mostra tokens e estimativa de custo real em USD.
 
@@ -52,9 +62,9 @@ Para um efeito ainda mais dramático, ative o toggle **"Modo alucinação"** ant
 
 No topo do painel da esquerda há três botões de "demo pronta" que populam um cenário:
 
-- **Esquecimento clássico** — janela 150, sem alucinação. Mostra a IA admitindo que não sabe.
-- **Crescimento da janela** — janela 800, sem alucinação. Mostra os gráficos crescendo gradualmente até o limite.
-- **Alucinação** — janela 200, com alucinação ativada. Mostra a IA inventando fatos errados.
+- **Esquecimento clássico**, janela 150, sem alucinação. Mostra a IA admitindo que não sabe.
+- **Crescimento da janela**, janela 800, sem alucinação. Mostra os gráficos crescendo gradualmente até o limite.
+- **Alucinação**, janela 200, com alucinação ativada. Mostra a IA inventando fatos errados.
 
 Use eles como ponto de partida e modifique ao vivo durante a aula.
 
@@ -93,6 +103,69 @@ O simulador imita o comportamento real de uma janela de contexto:
 5. **Feedback visual**: mensagens fora da janela aparecem em cinza com tarja "FORA DA JANELA".
 
 O simulador foi cuidadosamente projetado pra ser **didaticamente honesto**: ele não trapaceia, não força respostas erradas em hora errada. Ele só obedece à regra "se saiu da janela, não tem acesso".
+
+---
+
+## Conteúdo da aula coberto pela IA simulada
+
+A IA tem **conhecimento real** sobre todos os tópicos do **Encontro 2, Fundamentos de IA, Embeddings e Tipos de Aprendizado de Máquina**. Para cada tópico ela responde 4 tipos de pergunta: *"o que é"*, *"como funciona"*, *"exemplos de"* e *"pra que serve"*. As analogias do Guia do Professor estão preservadas.
+
+**Módulo 1, Embeddings**
+- Embeddings (analogia do mapa de significados)
+- Vetor
+- Modelo de embedding de texto (analogia do tradutor especializado)
+- Modelo de embedding de imagem (analogia da assinatura visual)
+- Embedding multimodal (analogia do dicionário visual)
+- Geração multimodal (analogia do artista de rua)
+
+**Módulo 2, Processamento de texto**
+- Tokenização (analogia da criança aprendendo a ler)
+- Bag-of-words (analogia do liquidificador de texto)
+- Contagem de frequência (nuvem de palavras)
+- Janela de contexto (analogia da memória de curto prazo)
+- Intervalo / chunk (analogia da torta cortada em fatias)
+
+**Módulo 3, Tipos de dados**
+- Dados estruturados (analogia do armário organizado)
+- Dados não estruturados (analogia da caixa de fotos)
+- Dados semiestruturados
+
+**Módulo 4, Bancos de vetores**
+- Banco de vetores (analogia da perfumaria)
+- Aurora PostgreSQL
+- pgvector (analogia da gaveta nova no arquivo antigo)
+
+**Módulo 5, Rotulagem**
+- Rotulagem (analogia da mãe ensinando criança + CAPTCHA do Google)
+- Dado rotulado / não rotulado
+- SageMaker Ground Truth
+- Mechanical Turk
+
+**Módulo 6, Tipos de aprendizado**
+- Supervisionado (analogia do aluno com gabarito)
+- Não supervisionado (analogia da criança organizando Lego)
+- Por reforço (analogia do cachorro com biscoito)
+- RLHF (Reinforcement Learning from Human Feedback)
+- Federado (analogia dos alunos que só mandam resumo)
+- Por transferência (analogia de quem sabe carro aprendendo moto)
+
+**Tópicos complementares**
+- IA vs ML vs Deep Learning
+- Redes neurais, Transformer, LLM
+- RAG, Fine-tuning, Prompt engineering
+- Python, APIs
+
+**Diferenças que ela acerta com explicação específica** (são as armadilhas do Apêndice B do Guia):
+- embedding multimodal **vs** geração multimodal *(compara vs cria)*
+- Ground Truth **vs** Mechanical Turk *(gerencia vs fornece mão de obra)*
+- federado **vs** transferência *(distribui treino vs reaproveita modelo)*
+- supervisionado **vs** não supervisionado *(com vs sem gabarito)*
+- janela de contexto **vs** intervalo/chunk *(limite vs estratégia)*
+- pgvector **vs** Aurora PostgreSQL *(extensão vs banco)*
+- estruturado **vs** não estruturado
+- RAG **vs** fine-tuning
+- embedding **vs** LLM
+- IA **vs** ML **vs** DL
 
 ---
 

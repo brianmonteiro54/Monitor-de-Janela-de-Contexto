@@ -1,5 +1,5 @@
 /* ============================================================
-   GEMINI CLIENT — chamadas reais à API do Google Gemini
+   GEMINI CLIENT, chamadas reais à API do Google Gemini
    diretamente do navegador. A chave fica em localStorage e é
    enviada no header da requisição.
    Doc: https://ai.google.dev/api/rest/v1/models/generateContent
