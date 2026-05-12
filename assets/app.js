@@ -385,10 +385,39 @@
     if (!GeminiClient.hasApiKey()) {
       throw new Error('Configure sua API key do Gemini no banner amarelo no topo da página.');
     }
-    // O histórico para a API exclui a última msg (que é a do usuário recém-adicionada)
-    const historyForApi = state.history.slice(0, -1).map(m => ({
-      role: m.role, content: m.content,
-    }));
+
+    // CRÍTICO: aplicar a janela de contexto MANUALMENTE no histórico antes
+    // de enviar pra API real. Sem isso, o Gemini tem janela gigante (1M tokens)
+    // e nunca "esquece" nada, quebrando a demonstração pedagógica. Aplicando
+    // o filtro aqui, o modelo real se comporta como se tivesse a janela
+    // configurada pelo professor (ex: 200 tokens).
+    const fullHistory = state.history.slice(0, -1); // exclui a msg do usuário recém-adicionada
+    const userMsgTokens = Simulation.countTokens(userMsg);
+    const budgetForHistory = state.contextWindow - userMsgTokens;
+
+    // Pega da mensagem mais recente pra trás até estourar o orçamento
+    const includedIndices = new Set();
+    let remaining = budgetForHistory;
+    for (let i = fullHistory.length - 1; i >= 0; i--) {
+      const msg = fullHistory[i];
+      if (remaining - msg.tokens >= 0) {
+        includedIndices.add(i);
+        remaining -= msg.tokens;
+      } else break;
+    }
+
+    // Filtra mantendo só as mensagens dentro da janela, preservando ordem
+    let historyForApi = fullHistory
+      .filter((_, i) => includedIndices.has(i))
+      .map(m => ({ role: m.role, content: m.content }));
+
+    // O Gemini exige que o histórico comece com role 'user'. Se a filtragem
+    // pela janela deixou uma resposta do assistente no início (porque a user
+    // anterior foi cortada), descartamos as 'assistant' iniciais órfãs.
+    while (historyForApi.length > 0 && historyForApi[0].role === 'assistant') {
+      historyForApi.shift();
+    }
+
     return GeminiClient.send({
       model: state.model,
       history: historyForApi,
