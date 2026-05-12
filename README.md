@@ -14,6 +14,27 @@ O modo simulação é o ponto crítico: muitos professores não querem ou não c
 
 ---
 
+## Deploy no GitHub Pages (3 passos)
+
+1. Crie um repositório no GitHub e suba a pasta inteira (`index.html`, `assets/`, `README.md`).
+2. Em **Settings → Pages**, selecione branch `main` e pasta `/ (root)`. Salve.
+3. Aguarde ~1 min. O app fica disponível em `https://SEU-USUARIO.github.io/NOME-DO-REPO/`.
+
+Pronto. O professor abre o link na aula, escolhe modo simulação ou cola a API key dele, a chave fica só no `localStorage` do navegador dele, nunca sobe pra lugar nenhum.
+
+### Rodando local (opcional)
+
+Qualquer servidor estático serve. Por exemplo:
+
+```bash
+cd context-window-monitor
+python3 -m http.server 8000
+# abre http://localhost:8000
+```
+
+Não precisa de servidor obrigatoriamente, abrir o `index.html` direto no navegador também funciona, só algumas funcionalidades de `localStorage` ficam mais restritas em `file://` em alguns navegadores.
+
+---
 
 ## Como usar em aula
 

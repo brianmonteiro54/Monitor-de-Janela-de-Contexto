@@ -11,7 +11,7 @@
   const state = {
     mode: 'simulation',          // 'simulation' | 'api'
     model: 'sim-flash',          // modelo atualmente selecionado
-    contextWindow: 300,          // tokens
+    contextWindow: 200,          // tokens
     tokenLimit: 5000,            // tokens (alerta)
     hallucinate: false,          // alucinação em sim mode
     history: [],                 // [{role, content, tokens, totalTokens, inputTokens, outputTokens, cumulativeTokens, timestamp, msgIndex}]
