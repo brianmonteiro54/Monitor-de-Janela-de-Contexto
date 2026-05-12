@@ -845,6 +845,16 @@ input[type="range"]::-moz-range-thumb {
   text-decoration: line-through;
   color: var(--text-dim);
 }
+.window-row-left {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--danger);
+  text-decoration: none;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 .window-row-tokens {
   font-family: var(--font-mono);
   font-size: 11px;

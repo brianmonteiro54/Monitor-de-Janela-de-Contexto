@@ -922,11 +922,50 @@ const Simulation = (() => {
     return inWindow;
   }
 
+  /* -------- Calcula o status COMPLETO de cada mensagem.
+     Para cada msg do histórico, devolve:
+       { inWindow: true } se está na janela atual
+       { inWindow: false, leftAt: T } se saiu da janela quando a msg #T+1 chegou
+     Isso permite a UI mostrar "saiu quando msg #11 entrou", o que é
+     pedagogicamente muito mais claro do que só ✓/✕.
+  */
+  function computeWindowHistory(history, contextWindow) {
+    const status = history.map(() => ({ inWindow: true, leftAt: null }));
+
+    // Para cada turno (do mais antigo ao mais recente), recalcula a janela
+    // e marca quando cada mensagem cai fora pela PRIMEIRA vez.
+    for (let t = 0; t < history.length; t++) {
+      let budget = contextWindow;
+      const inSet = new Set();
+      for (let i = t; i >= 0; i--) {
+        if (budget - history[i].tokens >= 0) {
+          inSet.add(i);
+          budget -= history[i].tokens;
+        } else break;
+      }
+      // Marca as que NÃO estão na janela no turno t e ainda não tinham caído
+      for (let i = 0; i <= t; i++) {
+        if (!inSet.has(i) && status[i].leftAt === null) {
+          status[i].leftAt = t;
+        }
+      }
+    }
+
+    // Estado final: marca o inWindow real (estado atual)
+    const finalIn = computeInWindow(history, contextWindow);
+    for (let i = 0; i < history.length; i++) {
+      status[i].inWindow = finalIn.has(i);
+    }
+
+    return status;
+  }
+
   return {
     countTokens,
     extractFacts,
     send,
     computeInWindow,
+    computeWindowHistory,
   };
 })();
 

@@ -554,16 +554,20 @@
       return;
     }
 
-    const inWindow = Simulation.computeInWindow(state.history, state.contextWindow);
+    const statuses = Simulation.computeWindowHistory(state.history, state.contextWindow);
     el.windowViz.innerHTML = state.history.map((msg, i) => {
-      const isIn = inWindow.has(i);
+      const st = statuses[i];
       const role = msg.role === 'user' ? 'Você' : 'IA';
       const preview = msg.content.length > 80 ? msg.content.slice(0, 80) + '…' : msg.content;
+      // Para mensagens fora, indicar em qual turno saíram (1-indexed na UI)
+      const leftNote = (!st.inWindow && st.leftAt !== null)
+        ? `<div class="window-row-left">saiu quando msg #${st.leftAt + 1} entrou</div>`
+        : '';
       return `
-        <div class="window-row ${isIn ? 'in' : 'out'}">
+        <div class="window-row ${st.inWindow ? 'in' : 'out'}">
           <div class="window-row-id">#${i + 1}</div>
-          <div class="window-row-role">${isIn ? '✓' : '✕'} ${role}</div>
-          <div class="window-row-preview">${escapeHTML(preview)}</div>
+          <div class="window-row-role">${st.inWindow ? '✓' : '✕'} ${role}</div>
+          <div class="window-row-preview">${escapeHTML(preview)}${leftNote}</div>
           <div class="window-row-tokens">${formatNumber(msg.tokens)} tok</div>
         </div>
       `;
@@ -578,19 +582,22 @@
       el.detailsTbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Sem dados ainda</td></tr>';
       return;
     }
-    const inWindow = Simulation.computeInWindow(state.history, state.contextWindow);
+    const statuses = Simulation.computeWindowHistory(state.history, state.contextWindow);
     el.detailsTbody.innerHTML = state.history.map((m, i) => {
       const preview = m.content.length > 100 ? m.content.slice(0, 100) + '…' : m.content;
-      const isIn = inWindow.has(i);
+      const st = statuses[i];
       const role = m.role === 'user' ? 'Usuário' : 'Assistente';
       const time = m.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const statusLabel = st.inWindow
+        ? '✓ Na janela'
+        : (st.leftAt !== null ? `✕ Saiu na #${st.leftAt + 1}` : '✕ Fora');
       return `
         <tr>
           <td class="num">${i + 1}</td>
           <td>${role}</td>
           <td class="num">${formatNumber(m.tokens)}</td>
           <td class="num">${formatNumber(m.cumulativeTokens)}</td>
-          <td><span class="status-pill ${isIn ? 'in' : 'out'}">${isIn ? '✓ Na janela' : '✕ Fora'}</span></td>
+          <td><span class="status-pill ${st.inWindow ? 'in' : 'out'}">${statusLabel}</span></td>
           <td class="preview-cell" title="${escapeHTML(m.content)}">${escapeHTML(preview)}</td>
         </tr>
       `;
