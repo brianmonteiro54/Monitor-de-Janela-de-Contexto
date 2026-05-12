@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Janela de Contexto</title>
+  <meta name="description" content="Dashboard interativo para visualizar o crescimento da janela de contexto em conversas com IA. Inclui modo de simulação sem necessidade de API key." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- ============== HEADER ============== -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 14L11 17L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Monitor de Janela de Contexto</h1>
+        <p class="subtitle">Visualize em tempo real como a janela de contexto cresce — e o que acontece quando ela estoura</p>
+      </div>
+    </div>
+
+    <div class="mode-switcher" role="tablist" aria-label="Modo de operação">
+      <button id="mode-sim" class="mode-btn active" role="tab" aria-selected="true">
+        <span class="mode-dot sim"></span>
+        Modo Simulação
+      </button>
+      <button id="mode-api" class="mode-btn" role="tab" aria-selected="false">
+        <span class="mode-dot api"></span>
+        API Real (Gemini)
+      </button>
+    </div>
+  </header>
+
+  <!-- ============== API KEY BANNER (only when API mode active) ============== -->
+  <div id="api-banner" class="api-banner" hidden>
+    <div class="api-banner-content">
+      <div class="api-banner-text">
+        <strong>API Key do Google Gemini</strong>
+        <span id="api-key-status">Não configurada</span>
+      </div>
+      <div class="api-banner-actions">
+        <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" spellcheck="false" />
+        <button id="api-key-save" class="btn-primary">Salvar</button>
+        <button id="api-key-clear" class="btn-ghost">Limpar</button>
+      </div>
+    </div>
+    <p class="api-banner-help">A chave é salva apenas no seu navegador (localStorage). Obtenha em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</p>
+  </div>
+
+  <!-- ============== MAIN LAYOUT ============== -->
+  <main class="layout">
+
+    <!-- ============== COLUMN 1: CONFIG ============== -->
+    <aside class="col-config" aria-label="Configuração">
+      <section class="panel">
+        <h2 class="panel-title">⚙️ Configuração</h2>
+
+        <!-- Model selector -->
+        <div class="field">
+          <label for="model-select">Modelo</label>
+          <select id="model-select">
+            <optgroup label="Simulação (sem API)">
+              <option value="sim-flash">Simulação — Flash</option>
+              <option value="sim-pro">Simulação — Pro</option>
+            </optgroup>
+            <optgroup label="Google Gemini" id="gemini-models-group">
+              <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Context window slider -->
+        <div class="field">
+          <label for="context-window">
+            Janela de Contexto
+            <span class="field-value" id="context-window-value">300 tokens</span>
+          </label>
+          <input type="range" id="context-window" min="50" max="2000" step="50" value="300" />
+          <p class="field-hint">Em sala, use valores baixos (150–400) para a janela estourar rápido e ficar visível.</p>
+        </div>
+
+        <!-- Alert limit -->
+        <div class="field">
+          <label for="token-limit">
+            Limite de Alerta
+            <span class="field-value" id="token-limit-value">5.000 tokens</span>
+          </label>
+          <input type="range" id="token-limit" min="500" max="50000" step="500" value="5000" />
+        </div>
+
+        <!-- Hallucination toggle (simulation only) -->
+        <div class="field field-toggle" id="hallucinate-field">
+          <label for="hallucinate-toggle" class="toggle">
+            <input type="checkbox" id="hallucinate-toggle" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">
+              Alucinar ao perder contexto
+              <span class="field-hint">Quando ligado, a IA simulada inventa respostas erradas (super didático).</span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Clear button -->
+        <button id="clear-btn" class="btn-danger-soft">
+          🗑️ Limpar Histórico
+        </button>
+
+        <!-- Quick demo buttons -->
+        <div class="demo-buttons">
+          <p class="demo-title">Roteiros prontos para demo:</p>
+          <button class="btn-ghost demo-btn" data-demo="memory-loss">
+            🎭 "A IA esqueceu meu nome"
+          </button>
+          <button class="btn-ghost demo-btn" data-demo="growth">
+            📈 Crescimento exponencial
+          </button>
+          <button class="btn-ghost demo-btn" data-demo="hallucination">
+            🌀 Demonstrar alucinação
+          </button>
+        </div>
+      </section>
+
+      <!-- Metrics cards -->
+      <section class="panel metrics-panel">
+        <h2 class="panel-title">📊 Métricas</h2>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-label">Mensagens</span>
+            <span class="metric-value" id="m-messages">0</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Total tokens</span>
+            <span class="metric-value" id="m-total-tokens">0</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Média/msg</span>
+            <span class="metric-value" id="m-avg-tokens">0</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Custo (USD)</span>
+            <span class="metric-value" id="m-cost">$0,0000</span>
+          </div>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-header">
+            <span>Limite de alerta</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div id="limit-alert" class="limit-alert" hidden></div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ============== COLUMN 2: CHAT ============== -->
+    <section class="col-chat" aria-label="Conversa">
+      <div class="panel chat-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">💬 Conversa</h2>
+          <div class="context-window-indicator">
+            <span class="cwi-label">Na janela:</span>
+            <span class="cwi-value" id="cwi-current">0</span>
+            <span class="cwi-sep">/</span>
+            <span class="cwi-value" id="cwi-max">300</span>
+            <span class="cwi-label">tokens</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <div class="empty-state">
+            <div class="empty-icon">👋</div>
+            <h3>Comece a conversa</h3>
+            <p>Digite uma mensagem para ver a janela de contexto crescer em tempo real.</p>
+            <div class="empty-tips">
+              <p><strong>Dica para professores:</strong></p>
+              <ol>
+                <li>Defina a janela em <strong>150 tokens</strong></li>
+                <li>Digite: <em>"Meu nome é Maria, tenho 30 anos e moro no Rio"</em></li>
+                <li>Faça outras 4–5 perguntas</li>
+                <li>Pergunte: <em>"Qual meu nome?"</em></li>
+                <li>Veja a IA esquecer ao vivo 🎓</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <form id="chat-form" class="chat-input-form">
+          <textarea
+            id="chat-input"
+            placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para nova linha)"
+            rows="2"
+          ></textarea>
+          <button type="submit" id="send-btn" class="btn-primary">
+            Enviar
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============== COLUMN 3: VISUALIZATIONS ============== -->
+    <aside class="col-viz" aria-label="Análise">
+      <div class="panel viz-panel">
+        <div class="tabs">
+          <button class="tab active" data-tab="window">🪟 Janela</button>
+          <button class="tab" data-tab="growth">📈 Crescimento</button>
+          <button class="tab" data-tab="bars">📊 Por mensagem</button>
+          <button class="tab" data-tab="details">📋 Detalhes</button>
+        </div>
+
+        <!-- Tab: Context window visualization (THE STAR) -->
+        <div class="tab-panel active" id="tab-window">
+          <h3 class="viz-title">Quais mensagens ainda cabem na janela?</h3>
+          <p class="viz-desc">
+            <span class="legend-pill in">✓ Dentro</span> da janela = IA "lembra".
+            <span class="legend-pill out">✕ Fora</span> da janela = IA "esqueceu".
+          </p>
+          <div id="window-viz" class="window-viz">
+            <div class="empty-viz">Envie mensagens para ver a visualização.</div>
+          </div>
+        </div>
+
+        <!-- Tab: Cumulative growth -->
+        <div class="tab-panel" id="tab-growth">
+          <h3 class="viz-title">Crescimento acumulado</h3>
+          <div class="chart-container">
+            <canvas id="chart-growth"></canvas>
+          </div>
+        </div>
+
+        <!-- Tab: Tokens per message -->
+        <div class="tab-panel" id="tab-bars">
+          <h3 class="viz-title">Tokens por mensagem</h3>
+          <div class="chart-container">
+            <canvas id="chart-bars"></canvas>
+          </div>
+        </div>
+
+        <!-- Tab: Details table -->
+        <div class="tab-panel" id="tab-details">
+          <h3 class="viz-title">Histórico detalhado</h3>
+          <div class="table-wrap">
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tipo</th>
+                  <th>Tokens</th>
+                  <th>Acumulado</th>
+                  <th>Status</th>
+                  <th>Preview</th>
+                </tr>
+              </thead>
+              <tbody id="details-tbody">
+                <tr><td colspan="6" class="empty-cell">Sem dados ainda</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <p>Monitor de Janela de Contexto • Material didático • <a href="https://github.com" target="_blank" rel="noopener">Código aberto</a></p>
+  </footer>
+
+  <!-- Toast notifications -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="assets/simulation.js"></script>
+  <script src="assets/gemini-client.js"></script>
+  <script src="assets/charts.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
